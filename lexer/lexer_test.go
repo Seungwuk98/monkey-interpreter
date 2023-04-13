@@ -110,3 +110,23 @@ if (5 < 10) {
 	}
 
 }
+
+func TestEQToken(t *testing.T) {
+	input := `5 != 5`
+	l := New(input)
+
+	tok := l.NextToken()
+	if tok.Type != token.INT {
+		t.Fatalf("expected int")
+	}
+
+	tok = l.NextToken()
+	if tok.Type != token.NOT_EQ {
+		t.Fatalf("expected NOT_EQ")
+	}
+
+	tok = l.NextToken()
+	if tok.Type != token.INT {
+		t.Fatalf("expected int")
+	}
+}
