@@ -1,6 +1,8 @@
 package object
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestStringHashKey(t *testing.T) {
 	hello1 := &String{Value: "Hello World"}
@@ -19,4 +21,14 @@ func TestStringHashKey(t *testing.T) {
 	if hello1.HashKey() == diff1.HashKey() {
 		t.Errorf("strings with different content have some hash keys")
 	}
+}
+
+func TestHashableKey(t *testing.T) {
+	var intObj Object = &Integer{Value: 1}
+
+	a, ok := intObj.(Hashable)
+	if !ok {
+		t.Errorf("int must can be Hashable, %T", a)
+	}
+
 }
