@@ -1,9 +1,6 @@
-let simple = fn (x, y) {
-    return x + y;
+let t = fn(x) { 
+    if (x < 1) { return 1 } 
+    else { return x * t(x-1) } 
 }
 
-
-let a = simple(1, 2);
-let b = simple(2, 3);
-
-puts(a, b);
+puts(t(10));

@@ -29,6 +29,12 @@ if (5 < 10) {
 "foo bar"
 [1, 2];
 {"foo": "bar"}
+5 <= 10
+a >= b
+
+for (let a = 0; a < 10; a = a + 1) {
+	puts(1);
+}
 `
 
 	tests := []struct {
@@ -120,6 +126,36 @@ if (5 < 10) {
 		{token.STRING, "foo"},
 		{token.COLON, ":"},
 		{token.STRING, "bar"},
+		{token.RBRACE, "}"},
+		{token.INT, "5"},
+		{token.LE, "<="},
+		{token.INT, "10"},
+		{token.IDENT, "a"},
+		{token.GE, ">="},
+		{token.IDENT, "b"},
+		{token.FOR, "for"},
+		{token.LPAREN, "("},
+		{token.LET, "let"},
+		{token.IDENT, "a"},
+		{token.ASSIGN, "="},
+		{token.INT, "0"},
+		{token.SEMICOLON, ";"},
+		{token.IDENT, "a"},
+		{token.LT, "<"},
+		{token.INT, "10"},
+		{token.SEMICOLON, ";"},
+		{token.IDENT, "a"},
+		{token.ASSIGN, "="},
+		{token.IDENT, "a"},
+		{token.PLUS, "+"},
+		{token.INT, "1"},
+		{token.RPAREN, ")"},
+		{token.LBRACE, "{"},
+		{token.IDENT, "puts"},
+		{token.LPAREN, "("},
+		{token.INT, "1"},
+		{token.RPAREN, ")"},
+		{token.SEMICOLON, ";"},
 		{token.RBRACE, "}"},
 		{token.EOF, ""},
 	}
