@@ -71,6 +71,11 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return val
 		}
 		return &object.ReturnValue{Value: val}
+	case *ast.ContinueStatement:
+		return &object.Continue{}
+
+	case *ast.BreakStatement:
+		return &object.Break{}
 
 	case *ast.LetStatement:
 		val := Eval(node.Value, env)
@@ -123,6 +128,9 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 
 	case *ast.HashLiteral:
 		return evalHashLiteral(node, env)
+
+	case *ast.ForExpression:
+		return evalForExpression(node, env)
 	}
 
 	return nil
@@ -144,6 +152,10 @@ func evalProgram(stmts []ast.Statement, env *object.Environment) object.Object {
 		switch result := result.(type) {
 		case *object.ReturnValue:
 			return result.Value
+		case *object.Continue:
+			return newError("invalid continue used")
+		case *object.Break:
+			return newError("invalid break used")
 		case *object.Error:
 			return result
 		}
@@ -295,7 +307,7 @@ func evalBlockStatement(block *ast.BlockStatement, env *object.Environment) obje
 
 		if result != nil {
 			rt := result.Type()
-			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ {
+			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ || rt == object.CONTINUE_OBJ || rt == object.BREAK_OBJ {
 				return result
 			}
 		}
@@ -452,9 +464,41 @@ func evalReassignExpression(
 	right object.Object,
 	env *object.Environment,
 ) object.Object {
-	if _, ok := env.Get(ident.Value); !ok {
+	outer, ok := env.FindOuter(ident.Value)
+	if !ok {
 		return newError("The variable is not assigned. So it's not reassignable. name=%s", ident.Value)
 	}
-	env.Set(ident.Value, right)
+	outer.Set(ident.Value, right)
 	return right
+}
+
+func evalForExpression(
+	node *ast.ForExpression,
+	env *object.Environment,
+) object.Object {
+	forEnv := object.NewEnclosedEnvironment(env)
+	if node.Initialization != nil {
+		Eval(node.Initialization, forEnv)
+	}
+
+	breakFlag := false
+
+	for Eval(node.Condition, forEnv) != nativeBoolToBooleanObject(false) {
+		obj := Eval(node.Body, forEnv)
+		if obj.Type() == object.BREAK_OBJ {
+			breakFlag = true
+			break
+		} else if obj.Type() == object.CONTINUE_OBJ {
+			Eval(node.Iteration, forEnv)
+			continue
+		} else if obj.Type() == object.RETURN_VALUE_OBJ || obj.Type() == object.ERROR_OBJ {
+			return obj
+		}
+		Eval(node.Iteration, forEnv)
+	}
+
+	if breakFlag {
+		return nativeBoolToBooleanObject(false)
+	}
+	return nativeBoolToBooleanObject(true)
 }

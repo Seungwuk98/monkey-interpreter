@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"monkey/ast"
 	"monkey/lexer"
+	"monkey/token"
 	"testing"
 )
 
@@ -876,6 +877,83 @@ func TestParsingHashLiteralsWithExpressions(t *testing.T) {
 		}
 
 		testFunc(value)
+	}
+
+}
+
+func TestForExpression(t *testing.T) {
+	input := `
+for (let i=0; i<10; i=i+1) {
+	let x = 1;
+	continue;
+	break;
+};
+`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+
+	exp, ok := stmt.Expression.(*ast.ForExpression)
+	if !ok {
+		t.Fatalf("exp is not ForExpression. got=%T val=%+v", stmt, stmt)
+	}
+
+	if exp.Token.Type != token.FOR {
+		t.Fatalf("exp token is not FOR. got=%s", exp.Token.Literal)
+	}
+
+	if !testLetStatement(t, exp.Initialization, "i") {
+		return
+	}
+
+	if !testInfixExpression(t, exp.Condition, "i", "<", 10) {
+		return
+	}
+
+	if exp.Iteration.String() != "(i = (i + 1))" {
+		t.Fatalf("iteration should be (i = (i + 1)). got=%T", exp.Iteration.String())
+		return
+	}
+
+	if len(exp.Body.Statements) != 3 {
+		t.Fatalf("exp.Body.Statements should have one statement. got=%d", len(exp.Body.Statements))
+		return
+	}
+
+	stmt1, ok := exp.Body.Statements[0].(*ast.LetStatement)
+	if !ok {
+		t.Fatalf("exp.Body.Statements[0] is not LetStatement. got=%T", exp.Body.Statements[0])
+		return
+	}
+
+	if !testLetStatement(t, stmt1, "x") {
+		return
+	}
+
+	stmt2, ok := exp.Body.Statements[1].(*ast.ContinueStatement)
+	if !ok {
+		t.Fatalf("exp.Body.Statements[1] is not ContinueStatement. got=%T", exp.Body.Statements[1])
+		return
+	}
+	if stmt2.Token.Type != token.CONTINUE {
+		t.Fatalf("expected continue. got=%s", stmt2.Token.Type)
+		return
+	}
+
+	stmt3, ok := exp.Body.Statements[2].(*ast.BreakStatement)
+	if !ok {
+		t.Fatalf("exp.Body.Statements[2] is not BreakStatement. got=%s", exp.Body.Statements[2])
+	}
+
+	if stmt3.Token.Type != token.BREAK {
+		t.Fatalf("expected continue. got=%T", stmt3.Token.Type)
+		return
 	}
 
 }

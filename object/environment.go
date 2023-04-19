@@ -24,6 +24,16 @@ func (e *Environment) Get(name string) (Object, bool) {
 	return obj, ok
 }
 
+func (e *Environment) FindOuter(name string) (*Environment, bool) {
+	_, ok := e.store[name]
+	if ok {
+		return e, true
+	} else if !ok && e.outer != nil {
+		return e.outer.FindOuter(name)
+	}
+	return nil, false
+}
+
 func (e *Environment) Set(name string, val Object) Object {
 	e.store[name] = val
 	return val

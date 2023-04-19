@@ -241,11 +241,19 @@ if (10 > 1) {
 		},
 		{
 			"1 = 2",
-			"Reassign '=' need lvalue. got=*ast.Identifier",
+			"Reassign '=' need lvalue. got=*ast.IntegerLiteral",
 		},
 		{
 			"a = 5",
 			"The variable is not assigned. So it's not reassignable. name=a",
+		},
+		{
+			"break;",
+			"invalid break used",
+		},
+		{
+			"continue;",
+			"invalid continue used",
 		},
 	}
 
@@ -552,4 +560,37 @@ func TestHashIndexExpressions(t *testing.T) {
 			testNullObject(t, evaluated)
 		}
 	}
+}
+
+func TestForExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{
+			`
+		let i=0;
+		for (; i<3; i = i+1) {
+			if (i == 0) {
+				continue;
+			} else {
+				break;
+			}
+		};
+		puts(i);
+		i;
+		`, 1,
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		switch evaluated.(type) {
+		case *object.Integer:
+			testIntegerObject(t, evaluated, tt.expected)
+		default:
+			t.Errorf("evaluated type is invalid. got=%T", evaluated)
+		}
+	}
+
 }

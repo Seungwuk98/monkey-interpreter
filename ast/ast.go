@@ -343,3 +343,47 @@ func (ae *AssignExpression) String() string {
 
 	return out.String()
 }
+
+type ForExpression struct {
+	Token          token.Token
+	Initialization *LetStatement
+	Condition      Expression
+	Iteration      Expression
+	Body           *BlockStatement
+}
+
+func (fe *ForExpression) expressionNode()      {}
+func (fe *ForExpression) TokenLiteral() string { return fe.Token.Literal }
+func (fe *ForExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("for (")
+	out.WriteString(fe.Initialization.String())
+	out.WriteString("; ")
+	out.WriteString(fe.Condition.String())
+	out.WriteString("; ")
+	out.WriteString(fe.Iteration.String())
+	out.WriteString(") {")
+	out.WriteString(fe.Body.String())
+	out.WriteString("}")
+
+	return out.String()
+}
+
+type ContinueStatement struct {
+	Token token.Token
+}
+
+func (cs *ContinueStatement) statementNode()       {}
+func (cs *ContinueStatement) expressionNode()      {}
+func (cs *ContinueStatement) TokenLiteral() string { return cs.Token.Literal }
+func (cs *ContinueStatement) String() string       { return "continue" }
+
+type BreakStatement struct {
+	Token token.Token
+}
+
+func (bs *BreakStatement) statementNode()       {}
+func (bs *BreakStatement) expressionNode()      {}
+func (bs *BreakStatement) TokenLiteral() string { return bs.Token.Literal }
+func (bs *BreakStatement) String() string       { return "continue" }

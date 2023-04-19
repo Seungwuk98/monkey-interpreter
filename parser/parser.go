@@ -102,6 +102,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.STRING, p.parseStringLiteral)
 	p.registerPrefix(token.LBRACKET, p.parseArrayLiteral)
 	p.registerPrefix(token.LBRACE, p.parseHashLiteral)
+	p.registerPrefix(token.FOR, p.parseForExpression)
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -182,6 +183,10 @@ func (p *Parser) parseStatement() ast.Statement {
 		return p.parseLetStatement()
 	case token.RETURN:
 		return p.parseReturnStatement()
+	case token.CONTINUE:
+		return p.parseContinueStatement()
+	case token.BREAK:
+		return p.parseBreakStatement()
 	default:
 		return p.parseExpressionStatement()
 	}
@@ -285,7 +290,6 @@ func (p *Parser) parseIfExpression() ast.Expression {
 func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 	block := &ast.BlockStatement{Token: p.curToken}
 	block.Statements = []ast.Statement{}
-
 	p.nextToken()
 	for !p.curTokenIs(token.RBRACE) && !p.curTokenIs(token.EOF) {
 		stmt := p.parseStatement()
@@ -457,6 +461,78 @@ func (p *Parser) parseHashLiteral() ast.Expression {
 	}
 
 	return hash
+}
+
+func (p *Parser) parseForExpression() ast.Expression {
+	forExp := &ast.ForExpression{Token: p.curToken, Initialization: nil}
+
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+
+	if p.peekTokenIs(token.LET) {
+		p.nextToken()
+		forExp.Initialization = p.parseLetStatement()
+	} else if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	} else {
+		msg := fmt.Sprintf("expected token LET or ;. got=%s", p.peekToken.Type)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+	if p.peekTokenIs(token.SEMICOLON) {
+		msg := fmt.Sprintf("no Condition for forExpression. got=%s", p.curToken.Type)
+		p.errors = append(p.errors, msg)
+		return nil
+	} else {
+		p.nextToken()
+		forExp.Condition = p.parseExpression(LOWEST)
+	}
+
+	if !p.expectPeek(token.SEMICOLON) {
+		return nil
+	}
+
+	if p.peekTokenIs(token.RPAREN) {
+		msg := fmt.Sprintf("no Iteration for forExrpression. got=%s", p.curToken.Type)
+		p.errors = append(p.errors, msg)
+		return nil
+	} else {
+		p.nextToken()
+		forExp.Iteration = p.parseExpression(LOWEST)
+	}
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	forExp.Body = p.parseBlockStatement()
+
+	if !p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+	return forExp
+}
+
+func (p *Parser) parseContinueStatement() *ast.ContinueStatement {
+	// fmt.Printf("%T %+v\n", p.curToken, p.curToken)
+	cs := &ast.ContinueStatement{Token: p.curToken}
+	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+	return cs
+}
+
+func (p *Parser) parseBreakStatement() *ast.BreakStatement {
+	bs := &ast.BreakStatement{Token: p.curToken}
+	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+	return bs
 }
 
 /////////////////////////////////////////////

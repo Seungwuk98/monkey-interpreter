@@ -35,6 +35,8 @@ a >= b
 for (let a = 0; a < 10; a = a + 1) {
 	puts(1);
 }
+continue
+break
 `
 
 	tests := []struct {
@@ -157,6 +159,8 @@ for (let a = 0; a < 10; a = a + 1) {
 		{token.RPAREN, ")"},
 		{token.SEMICOLON, ";"},
 		{token.RBRACE, "}"},
+		{token.CONTINUE, "continue"},
+		{token.BREAK, "break"},
 		{token.EOF, ""},
 	}
 
