@@ -27,13 +27,20 @@ type (
 const (
 	_ int = iota
 	LOWEST
+	ASSIGN      // =
 	EQUALS      // ==
 	LESSGREATER // > or <
 	SUM         // +
 	PRODUCT     // *
 	PREFIX      // -X or !X
 	CALL        // function(X)
-	Index       // array[index]
+	INDEX       // array[index]
+)
+
+const (
+	_ int = iota
+	LEFT_TO_RIGHT
+	RIGHT_TO_LEFT
 )
 
 var precedences = map[token.TokenType]int{
@@ -48,7 +55,12 @@ var precedences = map[token.TokenType]int{
 	token.SLASH:     PRODUCT,
 	token.ASTERRISK: PRODUCT,
 	token.LPAREN:    CALL,
-	token.LBRACKET:  Index,
+	token.LBRACKET:  INDEX,
+	token.ASSIGN:    ASSIGN,
+}
+
+var infixOperatingDirection = map[token.TokenType]int{
+	token.ASSIGN: RIGHT_TO_LEFT,
 }
 
 func (p *Parser) peekPrecedence() int {
@@ -56,6 +68,13 @@ func (p *Parser) peekPrecedence() int {
 		return p
 	}
 	return LOWEST
+}
+
+func (p *Parser) peekOperatingDirection() int {
+	if dir, ok := infixOperatingDirection[p.peekToken.Type]; ok {
+		return dir
+	}
+	return LEFT_TO_RIGHT
 }
 
 func (p *Parser) curPrecedece() int {
@@ -95,6 +114,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.LE, p.parseInfixExpression)
 	p.registerInfix(token.GT, p.parseInfixExpression)
 	p.registerInfix(token.GE, p.parseInfixExpression)
+	p.registerInfix(token.ASSIGN, p.parseInfixExpression)
 	p.registerInfix(token.LPAREN, p.parseCallExpression)
 	p.registerInfix(token.LBRACKET, p.parseIndexExpression)
 	return p
@@ -292,7 +312,7 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 	}
 	leftExp := prefix()
 
-	for !p.peekTokenIs(token.SEMICOLON) && precedence < p.peekPrecedence() {
+	for !p.peekTokenIs(token.SEMICOLON) && ((p.peekOperatingDirection() == LEFT_TO_RIGHT && precedence < p.peekPrecedence()) || (p.peekOperatingDirection() == RIGHT_TO_LEFT && precedence <= p.peekPrecedence())) {
 		infix := p.infixParseFns[p.peekToken.Type]
 		if infix == nil {
 			return leftExp

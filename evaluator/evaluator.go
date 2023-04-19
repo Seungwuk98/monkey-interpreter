@@ -36,15 +36,28 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return evalPrefixExpression(node.Operator, right)
 
 	case *ast.InfixExpression:
-		left := Eval(node.Left, env)
-		if isError(left) {
-			return left
+		if node.Operator == "=" {
+			left, ok := node.Left.(*ast.Identifier)
+			if !ok {
+				fmt.Printf("%+v", node.Left.String())
+				return newError("Reassign '=' need lvalue. got=%T", node.Left)
+			}
+			right := Eval(node.Right, env)
+			if isError(right) {
+				return right
+			}
+			return evalReassignExpression(left, right, env)
+		} else {
+			left := Eval(node.Left, env)
+			if isError(left) {
+				return left
+			}
+			right := Eval(node.Right, env)
+			if isError(right) {
+				return right
+			}
+			return evalInfixExpression(node.Operator, left, right)
 		}
-		right := Eval(node.Right, env)
-		if isError(right) {
-			return right
-		}
-		return evalInfixExpression(node.Operator, left, right)
 
 	case *ast.BlockStatement:
 		return evalBlockStatement(node, env)
@@ -432,4 +445,16 @@ func evalHashIndexExpression(hash, index object.Object) object.Object {
 	}
 	fmt.Printf("%+v\n", pair.Value)
 	return pair.Value
+}
+
+func evalReassignExpression(
+	ident *ast.Identifier,
+	right object.Object,
+	env *object.Environment,
+) object.Object {
+	if _, ok := env.Get(ident.Value); !ok {
+		return newError("The variable is not assigned. So it's not reassignable. name=%s", ident.Value)
+	}
+	env.Set(ident.Value, right)
+	return right
 }

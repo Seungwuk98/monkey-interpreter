@@ -29,7 +29,7 @@ func TestEvalIntegerExpression(t *testing.T) {
 		{"3 * (3 * 3) + 10", 37},
 		{"3 * 3 * 3 + 10", 37},
 		{"(5 + 10 * 2 + 15 / 3) * 2 + -10", 50},
-		{"let a = 1; a = 2;", 2},
+		{"let a = 1; a = 2; a;", 2},
 	}
 
 	for _, tt := range tests {
@@ -238,6 +238,14 @@ if (10 > 1) {
 		{
 			`{"name": "Monkey"}[fn(x) { x }];`,
 			"unusable as hash key: FUNCTION",
+		},
+		{
+			"1 = 2",
+			"Reassign '=' need lvalue. got=*ast.Identifier",
+		},
+		{
+			"a = 5",
+			"The variable is not assigned. So it's not reassignable. name=a",
 		},
 	}
 
