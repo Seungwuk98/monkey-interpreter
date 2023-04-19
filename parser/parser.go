@@ -29,7 +29,11 @@ const (
 	LOWEST
 	ASSIGN      // =
 	EQUALS      // ==
+	BIT_OR      // |
+	BIT_XOR     // ^
+	BIT_AND     // &
 	LESSGREATER // > or <
+	SHIFT       // << or >>
 	SUM         // +
 	PRODUCT     // *
 	PREFIX      // -X or !X
@@ -44,19 +48,24 @@ const (
 )
 
 var precedences = map[token.TokenType]int{
-	token.EQ:        EQUALS,
-	token.NOT_EQ:    EQUALS,
-	token.LT:        LESSGREATER,
-	token.LE:        LESSGREATER,
-	token.GT:        LESSGREATER,
-	token.GE:        LESSGREATER,
-	token.PLUS:      SUM,
-	token.MINUS:     SUM,
-	token.SLASH:     PRODUCT,
-	token.ASTERRISK: PRODUCT,
-	token.LPAREN:    CALL,
-	token.LBRACKET:  INDEX,
-	token.ASSIGN:    ASSIGN,
+	token.EQ:           EQUALS,
+	token.NOT_EQ:       EQUALS,
+	token.LT:           LESSGREATER,
+	token.LE:           LESSGREATER,
+	token.GT:           LESSGREATER,
+	token.GE:           LESSGREATER,
+	token.PLUS:         SUM,
+	token.MINUS:        SUM,
+	token.SLASH:        PRODUCT,
+	token.ASTERRISK:    PRODUCT,
+	token.LPAREN:       CALL,
+	token.LBRACKET:     INDEX,
+	token.ASSIGN:       ASSIGN,
+	token.AMPERSAND:    BIT_AND,
+	token.CARET:        BIT_XOR,
+	token.VERTICAL_BAR: BIT_OR,
+	token.LEFT_SHIFT:   SHIFT,
+	token.RIGHT_SHIFT:  SHIFT,
 }
 
 var infixOperatingDirection = map[token.TokenType]int{
@@ -103,6 +112,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.LBRACKET, p.parseArrayLiteral)
 	p.registerPrefix(token.LBRACE, p.parseHashLiteral)
 	p.registerPrefix(token.FOR, p.parseForExpression)
+	p.registerPrefix(token.TILDE, p.parsePrefixExpression)
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -118,6 +128,11 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.ASSIGN, p.parseInfixExpression)
 	p.registerInfix(token.LPAREN, p.parseCallExpression)
 	p.registerInfix(token.LBRACKET, p.parseIndexExpression)
+	p.registerInfix(token.LEFT_SHIFT, p.parseInfixExpression)
+	p.registerInfix(token.RIGHT_SHIFT, p.parseInfixExpression)
+	p.registerInfix(token.AMPERSAND, p.parseInfixExpression)
+	p.registerInfix(token.VERTICAL_BAR, p.parseInfixExpression)
+	p.registerInfix(token.CARET, p.parseInfixExpression)
 	return p
 }
 

@@ -31,6 +31,13 @@ const (
 	GT = ">"
 	GE = ">="
 
+	TILDE        = "~"
+	LEFT_SHIFT   = "<<"
+	RIGHT_SHIFT  = ">>"
+	AMPERSAND    = "&"
+	VERTICAL_BAR = "|"
+	CARET        = "^"
+
 	// 구분자
 	COMMA     = ","
 	SEMICOLON = ";"

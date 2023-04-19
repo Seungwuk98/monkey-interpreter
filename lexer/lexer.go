@@ -107,6 +107,11 @@ func (l *Lexer) NextToken() token.Token {
 			l.readChar()
 			literal := string(ch) + string(l.ch)
 			tok = token.Token{Type: token.LE, Literal: literal}
+		} else if l.peekChar() == '<' {
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + string(l.ch)
+			tok = token.Token{Type: token.LEFT_SHIFT, Literal: literal}
 		} else {
 			tok = newToken(token.LT, l.ch)
 		}
@@ -116,6 +121,11 @@ func (l *Lexer) NextToken() token.Token {
 			l.readChar()
 			literal := string(ch) + string(l.ch)
 			tok = token.Token{Type: token.GE, Literal: literal}
+		} else if l.peekChar() == '>' {
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + string(l.ch)
+			tok = token.Token{Type: token.RIGHT_SHIFT, Literal: literal}
 		} else {
 			tok = newToken(token.GT, l.ch)
 		}
@@ -131,6 +141,14 @@ func (l *Lexer) NextToken() token.Token {
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
+	case '~':
+		tok = newToken(token.TILDE, l.ch)
+	case '&':
+		tok = newToken(token.AMPERSAND, l.ch)
+	case '|':
+		tok = newToken(token.VERTICAL_BAR, l.ch)
+	case '^':
+		tok = newToken(token.CARET, l.ch)
 	default:
 		if isLetter(l.ch) {
 			tok.Literal = l.readIdentifier()

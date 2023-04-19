@@ -34,7 +34,11 @@ func (e *Environment) FindOuter(name string) (*Environment, bool) {
 	return nil, false
 }
 
-func (e *Environment) Set(name string, val Object) Object {
+func (e *Environment) Set(name string, val Object) (Object, bool) {
+	_, ok := e.store[name]
+	if ok {
+		return nil, false
+	}
 	e.store[name] = val
-	return val
+	return val, true
 }

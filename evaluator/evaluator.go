@@ -82,7 +82,10 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		if isError(val) {
 			return val
 		}
-		env.Set(node.Name.Value, val)
+		_, ok := env.Set(node.Name.Value, val)
+		if !ok {
+			return newError("Already declared variable : %s", node.Name.Value)
+		}
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
 
@@ -170,6 +173,8 @@ func evalPrefixExpression(operator string, right object.Object) object.Object {
 		return evalBangOperatorExpression(right)
 	case "-":
 		return evalMinusPrefixOperatorExpression(right)
+	case "~":
+		return evalNotPrefixOperatorExpression(right)
 	default:
 		return newError("unknown operator: %s%s", operator, right.Type())
 	}
@@ -195,6 +200,15 @@ func evalMinusPrefixOperatorExpression(right object.Object) object.Object {
 
 	value := right.(*object.Integer).Value
 	return &object.Integer{Value: -value}
+}
+
+func evalNotPrefixOperatorExpression(right object.Object) object.Object {
+	if right.Type() != object.INTEGER_OBJ {
+		return newError("unknown operator: ~%s", right.Type())
+	}
+
+	value := right.(*object.Integer).Value
+	return &object.Integer{Value: ^value}
 }
 
 func evalInfixExpression(
@@ -232,6 +246,16 @@ func evalIntegerInfixExpression(
 		return &object.Integer{Value: leftVal * rightVal}
 	case "/":
 		return &object.Integer{Value: leftVal / rightVal}
+	case "<<":
+		return &object.Integer{Value: leftVal << rightVal}
+	case ">>":
+		return &object.Integer{Value: leftVal >> rightVal}
+	case "&":
+		return &object.Integer{Value: leftVal & rightVal}
+	case "|":
+		return &object.Integer{Value: leftVal | rightVal}
+	case "^":
+		return &object.Integer{Value: leftVal ^ rightVal}
 	case "<":
 		return nativeBoolToBooleanObject(leftVal < rightVal)
 	case "<=":
