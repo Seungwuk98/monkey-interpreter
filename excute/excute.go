@@ -12,6 +12,7 @@ func ExcuteProgram(input string) {
 	l := lexer.New(input)
 	p := parser.New(l)
 	program := p.ParseProgram()
+
 	if len(p.Errors()) == 0 {
 		env := object.NewEnvironment()
 		evaluator.Eval(program, env)

@@ -39,7 +39,6 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		if node.Operator == "=" {
 			left, ok := node.Left.(*ast.Identifier)
 			if !ok {
-				fmt.Printf("%+v", node.Left.String())
 				return newError("Reassign '=' need lvalue. got=%T", node.Left)
 			}
 			right := Eval(node.Right, env)
@@ -82,10 +81,11 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		if isError(val) {
 			return val
 		}
-		_, ok := env.Set(node.Name.Value, val)
-		if !ok {
+		ok := env.Find(node.Name.Value)
+		if ok {
 			return newError("Already declared variable : %s", node.Name.Value)
 		}
+		env.Set(node.Name.Value, val)
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
 
@@ -479,7 +479,6 @@ func evalHashIndexExpression(hash, index object.Object) object.Object {
 	if !ok {
 		return NULL
 	}
-	fmt.Printf("%+v\n", pair.Value)
 	return pair.Value
 }
 
@@ -509,14 +508,16 @@ func evalForExpression(
 
 	for Eval(node.Condition, forEnv) != nativeBoolToBooleanObject(false) {
 		obj := Eval(node.Body, forEnv)
-		if obj.Type() == object.BREAK_OBJ {
-			breakFlag = true
-			break
-		} else if obj.Type() == object.CONTINUE_OBJ {
-			Eval(node.Iteration, forEnv)
-			continue
-		} else if obj.Type() == object.RETURN_VALUE_OBJ || obj.Type() == object.ERROR_OBJ {
-			return obj
+		if obj != nil {
+			if obj.Type() == object.BREAK_OBJ {
+				breakFlag = true
+				break
+			} else if obj.Type() == object.CONTINUE_OBJ {
+				Eval(node.Iteration, forEnv)
+				continue
+			} else if obj.Type() == object.RETURN_VALUE_OBJ || obj.Type() == object.ERROR_OBJ {
+				return obj
+			}
 		}
 		Eval(node.Iteration, forEnv)
 	}

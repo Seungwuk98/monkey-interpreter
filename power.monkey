@@ -1,19 +1,17 @@
 let fibonacci = fn(x) {
     if (x <= 1) {
-        return x;
-    } else {
-        return fibonacci(x - 1) + fibonacci(x - 2);
+        return 1;
     }
-}
-
-let ok = for (let i=0; i<13; i = i + 1) {
-    if (i == 10) {
-        break;
-    }
-    puts(fibonacci(i));
+    return fibonacci(x - 1) + fibonacci(x - 2);
 };
 
-if ()
+puts(fibonacci(10))
 
-let a = 0;
-puts(a);
+let make_fn = fn(x) {
+    return fn(u) {
+        return x + u;
+    };
+}
+
+let my_fn = make_fn(3)
+puts(my_fn(2))
