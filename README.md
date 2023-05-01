@@ -159,7 +159,7 @@ let fibonacci = fn(x) {
     return fibonacci(x - 1) + fibonacci(x - 2);
 };
 
-puts(fibonacci(10))
+puts(fibonacci(10));
 
 let make_fn = fn(x) {
     return fn(u) {
@@ -167,8 +167,8 @@ let make_fn = fn(x) {
     };
 }
 
-let my_fn = make_fn(3)
-puts(my_fn(2))
+let my_fn = make_fn(3);
+puts(my_fn(2));
 ```
 
 아래는 결과입니다. 
@@ -182,10 +182,10 @@ puts(my_fn(2))
 `monkey`에서 `for`문 역시 표현식입니다. 하지만, `for`문이 반환하는 값은 `for`문 내부의 표현식이 아닌, `for`문 수행의 성공 여부입니다. 아래의 예시를 보는 것이 더 이해에 도움이 될 것입니다.
 
 ```monkey
-let result1 = for (let i=0; i<10; i=i+1) { }
-let result2 = for (let i=0; i<10; i=i+1) { break; }
+let result1 = for (let i=0; i<10; i=i+1) { };
+let result2 = for (let i=0; i<10; i=i+1) { break; };
 
-puts(result1, result2)
+puts(result1, result2);
 ```
 ```monkey
 true
@@ -212,9 +212,9 @@ let Monkey = class T {
     member x, y, z;
 };
 
-let obj = Monkey(1, 2, fn(x) { return x })
-puts(obj.x, obj.y)
-puts(obj.z(3))
+let obj = Monkey(1, 2, fn(x) { return x });
+puts(obj.x, obj.y);
+puts(obj.z(3));
 ```
 
 ```monkey
